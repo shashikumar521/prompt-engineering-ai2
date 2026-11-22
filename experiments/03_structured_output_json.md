@@ -4,23 +4,73 @@
 
 To test whether an AI model can extract payment information from different types of messages and return the information in a consistent JSON format.
 
+The experiment also defines a JSON Schema to describe the required structure, field names, data types, and validation rules.
+
 ## 2. Tool Used
 
 - Platform: Google AI Studio
 - Model: Gemini (Model 1, as displayed in the Playground)
+- Testing method: Manual prompt execution
 
-## 3. JSON Structure and Prompt
+## 3. JSON Structure and Schema
 
-### Required JSON Structure
+### Required JSON Fields
 
 The model was instructed to return exactly four fields:
 
-- `name`: string or null
-- `date`: string in YYYY-MM-DD format or null
-- `amount`: number or null
-- `currency`: string or null
+| Field | Data Type | Description |
+|---|---|---|
+| name | String or null | Name of the person |
+| date | String or null | Date in YYYY-MM-DD format |
+| amount | Number or null | Payment amount |
+| currency | String or null | Currency code (INR, USD, EUR) |
 
-### Prompt Used
+### JSON Schema
+
+The following JSON Schema formally defines the expected output structure.
+
+```json
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "name",
+    "date",
+    "amount",
+    "currency"
+  ],
+  "properties": {
+    "name": {
+      "type": ["string", "null"]
+    },
+    "date": {
+      "type": ["string", "null"],
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+    },
+    "amount": {
+      "type": ["number", "null"]
+    },
+    "currency": {
+      "type": ["string", "null"],
+      "enum": ["INR", "USD", "EUR", null]
+    }
+  }
+}
+```
+
+### Schema Explanation
+
+1. `type: object` requires the output to be a JSON object.
+2. `required` ensures all four fields are present.
+3. `additionalProperties: false` prevents extra fields.
+4. The `type` definitions specify the expected data types.
+5. The date pattern specifies the YYYY-MM-DD format for non-null dates.
+6. The currency enumeration restricts non-null currency values to INR, USD, or EUR.
+7. Null values are allowed when information is missing.
+
+**Note:** This schema documents the expected JSON structure. It was not enabled as API-based schema enforcement during the experiment.
+
+## 4. Prompt Used
 
 You are a data extraction assistant. Extract payment information from the input message.
 
@@ -55,7 +105,7 @@ Now extract the information from this input:
 
 "Rahul paid ₹1,250 to the college on 15 November 2026 for registration."
 
-## 4. Five Test Inputs and Actual Outputs
+## 5. Five Test Inputs and Actual Outputs
 
 ### Test 1: Complete Payment Information
 
@@ -152,7 +202,7 @@ hey, this is Arjun — transferred Rs. 3,500 to the workshop yesterday, 17/11/26
 
 **Result:** Correct. The model handled informal wording, the Rs. currency abbreviation, and the numeric date format accurately.
 
-## 5. Results and Success Rate
+## 6. Results and Success Rate
 
 All five test inputs produced the expected information in the required JSON structure.
 
@@ -166,13 +216,15 @@ All five test inputs produced the expected information in the required JSON stru
 | Missing values represented using null | Yes |
 | Amounts returned as numbers | Yes |
 
-**Success Rate Calculation:**
+### Success Rate Calculation
 
-(5 successful outputs / 5 total tests) × 100 = 100%
+Success Rate = (Successful Outputs / Total Test Inputs) × 100
 
-## 6. Techniques That Improved Reliability
+Success Rate = (5 / 5) × 100 = **100%**
 
-The following prompting techniques helped produce consistent structured outputs:
+## 7. Techniques That Improved Reliability
+
+The following techniques helped produce consistent structured outputs:
 
 1. **Explicit field definitions:** Specifying the exact four JSON keys made the expected structure clear.
 2. **Data type instructions:** Defining strings, numbers, and null values helped maintain consistent data types.
@@ -180,13 +232,14 @@ The following prompting techniques helped produce consistent structured outputs:
 4. **Examples:** Providing an input and its expected JSON output demonstrated the desired format.
 5. **Missing-value rules:** Explicitly instructing the model to use null prevented it from inventing missing information.
 6. **Date and currency normalization:** Specifying the required date format and currency codes made the extracted data consistent.
+7. **JSON Schema definition:** Defining required fields, data types, allowed currency values, and date formatting provided a formal specification for validating the output.
 
-The experiment used prompt instructions and an example in Google AI Studio. API-based JSON mode or schema enforcement was not used.
+The experiment used prompt instructions and an example in Google AI Studio. The JSON Schema was documented for the experiment, but API-based JSON mode or schema enforcement was not enabled.
 
-## 7. Conclusion
+## 8. Conclusion
 
 The experiment demonstrates that structured prompting can help an AI model extract information and return it in a consistent JSON format.
 
 The model successfully completed all five test cases, including messages with missing information and informal wording. The final success rate was 100%.
 
-Explicit field definitions, data types, examples, and missing-value rules helped produce accurate and consistent outputs.
+Explicit field definitions, data types, examples, missing-value rules, and a formal JSON Schema helped define a reliable and consistent output format.
